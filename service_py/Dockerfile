@@ -1,8 +1,7 @@
-FROM alpine
+FROM python:3.9-alpine
 
 WORKDIR /src
 COPY server.py .
-RUN apk add --update --no-cache python3 && ln -sf python3 /usr/bin/python
-CMD ["python", "server.py"]
+CMD ["python3", "server.py"]
 EXPOSE 8080
 
