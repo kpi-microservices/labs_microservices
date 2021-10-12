@@ -14,7 +14,6 @@ spec:
     spec:
       containers:
         - image: avovchenko01/lab1-js-server
-          #imagePullPolicy: Never   # вказує k8s, що образ не потрібно завантажувати (варто використовувати лише для випадків, коли образи локальні)
           name: service-js           # ім'я контейнеру
           ports:
             - containerPort: 8080  # порт по якому можна звертатись до поди
