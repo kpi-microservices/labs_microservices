@@ -12,7 +12,7 @@ server.route({
   handler: async (request, h) => {
     try {
       const response = await Axios({
-        url: 'http://localhost:8081/',
+        url: 'http://service-js-2-service/api/service-js-2',
         method: 'GET',
       });
       return "Hello from Node server 1" + "<br />" + response.data.message;

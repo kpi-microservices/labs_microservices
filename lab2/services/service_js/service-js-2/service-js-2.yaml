@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: service-js-2-deployment
+spec:
+  replicas: 1                      # кількість екземплярів Pod, що буде створено цим Deployment
+  selector:
+    matchLabels:
+      app: service-js-2
+  template:
+    metadata:
+     labels:
+       app: service-js-2             # мітка Pod по якому вона буде зв'язана з Deployment та Service
+    spec:
+      containers:
+        - image: avovchenko01/service-js-2
+          imagePullPolicy: Never
+          name: service-js-2          # ім'я контейнеру
+          ports:
+            - containerPort: 8080  # порт по якому можна звертатись до поди
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: service-js-2-service
+spec:
+  type: LoadBalancer
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80         # порт по якому можна звератись до сервісу
+      targetPort: 8080 # порт контейнера
+        #nodePort: 30000
+  selector:
+    app: service-js-2      # селектор, всі Pod з даним селектором, будуть підключені до даного сервісу
+

@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: service-py-deployment
+spec:
+  replicas: 1                      # кількість екземплярів Pod, що буде створено цим Deployment
+  selector:
+    matchLabels:
+      app: service-py
+  template:
+    metadata:
+     labels:
+       app: service-py              # мітка Pod по якому вона буде зв'язана з Deployment та Service
+    spec:
+      containers:
+        - image: avovchenko01/lab1-py-server
+          name: service-py           # ім'я контейнеру
+          ports:
+            - containerPort: 8080  # порт по якому можна звертатись до поди
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: service-py-service
+spec:
+  ports:
+    - port: 80         # порт по якому можна звератись до сервісу
+      targetPort: 8080 # порт контейнера
+  selector:
+    app: service-py      # селектор, всі Pod з даним селектором, будуть підключені до даного сервісу
+
