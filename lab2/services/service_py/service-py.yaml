@@ -13,7 +13,8 @@ spec:
        app: service-py              # мітка Pod по якому вона буде зв'язана з Deployment та Service
     spec:
       containers:
-        - image: avovchenko01/lab1-py-server
+        - image: avovchenko01/service-py
+          imagePullPolicy: Never
           name: service-py           # ім'я контейнеру
           ports:
             - containerPort: 8080  # порт по якому можна звертатись до поди
