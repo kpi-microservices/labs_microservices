@@ -1,5 +1,5 @@
 if ! minikube ip; then
-	minikube start
+	minikube start --driver=kvm2
 fi
 eval $(minikube -p minikube docker-env)
 curr=$(pwd)

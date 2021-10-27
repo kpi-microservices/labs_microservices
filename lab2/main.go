@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"sync"
 	"time"
+    "strings"
+    "os/exec"
 )
 
 var concurrentRequests = 100
@@ -16,17 +18,19 @@ func main() {
 	wg := sync.WaitGroup{}
 	wg.Add(concurrentRequests)
 
-//	cmd := exec.Command("minikube", "ip")
-//	output, err := cmd.Output()
-//	if err != nil {
-//		panic(err)
-//	}
-//	ip := strings.TrimSpace(string(output))
+	cmd := exec.Command("minikube", "ip")
+	output, err := cmd.Output()
+	if err != nil {
+		panic(err)
+	}
+	ip := strings.TrimSpace(string(output))
+    url := fmt.Sprintf("http://%s/api/service-js-2", ip)
+    fmt.Printf("Calling into url '%s'...\n", url)
 
 	for i := 0; i < concurrentRequests; i++ {
 		go func(count int) {
 			now := time.Now()
-                        resp, err := http.Get(fmt.Sprintf("http://%s/", "127.0.0.1:8080"))
+            resp, err := http.Get(url)
 			if err != nil {
 				errCount++
 				fmt.Printf("request %d failed to load response: %v \n", count, err)

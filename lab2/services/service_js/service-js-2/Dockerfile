@@ -1,7 +1,6 @@
 FROM node as builder
 WORKDIR /src
-COPY service-js-2.js package.json ./
-RUN npm install
+COPY service-js-2.js ./
 
 FROM astefanutti/scratch-node
 COPY --from=builder /src /

@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: service-js-2-deployment
 spec:
-  replicas: 1                      # кількість екземплярів Pod, що буде створено цим Deployment
+  replicas: 3                      # кількість екземплярів Pod, що буде створено цим Deployment
   selector:
     matchLabels:
       app: service-js-2

@@ -1,25 +1,29 @@
-const express = require('express')
-const app = express()
+const http = require('http');
 
 var broken = false
 
-// respond with "hello world" when a GET request is made to the homepage
-app.get('/', function (req, res) {
-  if (broken) {
-    setTimeout( () => {
-        res.send('hello world! You have experienced a 5 sec lag ...')
-    }, 5000 ) 
-  } else {
-    res.send("Hello world!")
-  }
-})
+const requestListener = function (req, res) {
+    if (req.url === '/api/service-js-2') {
+        res.writeHead(200);
+        if (broken) {
+            setTimeout(() => {
+                res.end('Hello world! You have experienced a 5 sec lag ...')
+            }, 5000)
+        } else {
+            res.end("Hello world!")
+        }
+        return
+    } else if (req.url === '/api/service-js-2/break') {
+        broken = true
+        res.writeHead(200);
+        res.end("You have successfully broken your service!")
+        return
+    }
 
-app.get('/break', function (req, res) {
-  broken = true 
-  res.send("You have successfully broken your service!")
-})
+    res.writeHead(404);
+    res.end(`Invalid url: '${req.url}'`)
+}
 
-app.listen(8080, () => {
-  console.log(`Server is working on port 8080`)
-})
 
+const server = http.createServer(requestListener);
+server.listen(8080);
