@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: producer-deployment
+spec:
+  replicas: 1                      # кількість екземплярів Pod, що буде створено цим Deployment
+  selector:
+    matchLabels:
+      app: producer
+  template:
+    metadata:
+     labels:
+       app: producer              # мітка Pod по якому вона буде зв'язана з Deployment та Service
+    spec:
+      containers:
+        - image: producer
+          imagePullPolicy: Never
+          name: producer           # ім'я контейнеру
+          ports:
+            - containerPort: 8080  # порт по якому можна звертатись до поди
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: producer-service
+spec:
+  ports:
+    - port: 80         # порт по якому можна звератись до сервісу
+      targetPort: 8080 # порт контейнера
+  selector:
+    app: producer      # селектор, всі Pod з даним селектором, будуть підключені до даного сервісу
