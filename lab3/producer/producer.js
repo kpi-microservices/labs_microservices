@@ -3,10 +3,6 @@ const { clientId, brokers, topic } = require('./constants.js')
 const { Kafka } = require("kafkajs")
 const http = require('http');
 
-// const clientId = "my-app"
-// const brokers = ["localhost:9092"]
-// const topic = "message-log"
-
 const kafka = new Kafka({ clientId, brokers })
 const producer = kafka.producer()
 
@@ -44,10 +40,10 @@ const requestListener = function (req, res) {
             name="password" value="" style="margin-top: 5px; width: 100%"
             class="password"></input>
             <br />
-
             <button type="button" style="background-color: #33b5ff; 
             margin-top: 5px; color: white; width: 100%
             " class="btn" onClick="hello()">Submit</button>
+            <p><a href="/api/consumer/registered">Registered users</a></p>
             </div>
         </form>
         `)

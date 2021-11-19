@@ -6,16 +6,37 @@ spec:
   replicas: 1                      # кількість екземплярів Pod, що буде створено цим Deployment
   selector:
     matchLabels:
-      app: consumer
+      app: webapp
   template:
     metadata:
-     labels:
-       app: consumer              # мітка Pod по якому вона буде зв'язана з Deployment та Service
+      labels:
+        app: webapp              # мітка Pod по якому вона буде зв'язана з Deployment та Service
+      annotations:
+        # vault.hashicorp.com/agent-inject: "true"
+        # vault.hashicorp.com/tls-skip-verify: "true"
+        # vault.hashicorp.com/agent-inject-secret-db_auth: "secret/db_auth"
+        # vault.hashicorp.com/agent-inject-template-db_auth: |
+        #   {{- with secret "secret/db_auth" -}}
+        #   {
+        #     "username" : "{{ .Data.username }}",
+        #     "password" : "{{ .Data.password }}"
+        #   }
+        #   {{- end }}
+        # vault.hashicorp.com/role: "webapp"
+    
     spec:
+      serviceAccountName: vault
       containers:
         - image: consumer
           imagePullPolicy: Never
-          name: consumer           # ім'я контейнеру
+          name: webapp           # ім'я контейнеру
+          env:            
+            - name: VAULT_ADDR              
+              value: 'http://vault:8200'            
+            - name: JWT_PATH              
+              value: '/var/run/secrets/kubernetes.io/serviceaccount/token'           
+            - name: SERVICE_PORT              
+              value: '8080'
           ports:
             - containerPort: 8080  # порт по якому можна звертатись до поди
 
@@ -30,4 +51,13 @@ spec:
     - port: 80         # порт по якому можна звератись до сервісу
       targetPort: 8080 # порт контейнера
   selector:
-    app: consumer      # селектор, всі Pod з даним селектором, будуть підключені до даного сервісу
+    app: webapp      # селектор, всі Pod з даним селектором, будуть підключені до даного сервісу
+
+# ---
+
+# apiVersion: v1
+# kind: ServiceAccount
+# metadata:
+#   name: basic-secret
+#   labels:
+#     app: consumer   

@@ -1,3 +1,4 @@
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -15,7 +16,7 @@ spec:
       containers:
         - name: postgres
           image: postgres-db
-          imagePullPolicy: "IfNotPresent"
+          imagePullPolicy: Never
           ports:
             - containerPort: 5432
           env:
