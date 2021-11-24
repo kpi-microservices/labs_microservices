@@ -6,11 +6,11 @@ spec:
   replicas: 1                      # кількість екземплярів Pod, що буде створено цим Deployment
   selector:
     matchLabels:
-      app: webapp
+      app: consumer
   template:
     metadata:
       labels:
-        app: webapp              # мітка Pod по якому вона буде зв'язана з Deployment та Service
+        app: consumer              # мітка Pod по якому вона буде зв'язана з Deployment та Service
       annotations:
         # vault.hashicorp.com/agent-inject: "true"
         # vault.hashicorp.com/tls-skip-verify: "true"
@@ -29,7 +29,7 @@ spec:
       containers:
         - image: consumer
           imagePullPolicy: Never
-          name: webapp           # ім'я контейнеру
+          name: consumer           # ім'я контейнеру
           env:            
             - name: VAULT_ADDR              
               value: 'http://vault:8200'            
@@ -51,7 +51,7 @@ spec:
     - port: 80         # порт по якому можна звератись до сервісу
       targetPort: 8080 # порт контейнера
   selector:
-    app: webapp      # селектор, всі Pod з даним селектором, будуть підключені до даного сервісу
+    app: consumer      # селектор, всі Pod з даним селектором, будуть підключені до даного сервісу
 
 # ---
 

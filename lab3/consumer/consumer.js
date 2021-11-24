@@ -1,9 +1,3 @@
-// const { clientId, brokers, topic } = require('./constants.js')
-// const { Kafka } = require('kafkajs')
-// const http = require('http')
-// const Pool = require('pg').Pool
-// const process = require('process')
-// const fs = require('fs')
 import {clientId, brokers, topic} from './constants.js'
 import {Kafka} from 'kafkajs'
 import http from 'http';
@@ -14,43 +8,42 @@ import fs from 'fs';
 
 const { Pool } = pkg;
 
-const pool = new Pool({
-  user: 'dmytro',
+let pool_obj = {
+  user: '',
   host: 'postgres',
   database: 'userdb',
-  password: '1234',
+  password: '',
   port: 5432,
-})
+}
+
 const kafka = new Kafka({ clientId, brokers })
 const consumer = kafka.consumer({ groupId: clientId })
 
 let if_connected = false
-let token = ''
 
 const requestListener = async function (req, res) {
     if (req.url === '/api/consumer/registered') {
         res.writeHead(200);
         // await ensureDbCreated()
+
         fs.readFile(process.env.JWT_PATH, { encoding: 'utf-8' }, async function(err, data) {
           if (!err) {
-              console.log('received data: ' + data);
-              console.log("--------------------------------")
-              token = data
-              const response = await fetch(`${process.env.VAULT_ADDR}/v1/auth/kubernetes/login`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                      "role": "webapp",
-                      "jwt": token
-                })
+            // console.log("Received data: " + data);
+            // console.log("--------------------------------")
+            const response = await fetch(`${process.env.VAULT_ADDR}/v1/auth/kubernetes/login`, {
+              method: 'PUT',
+              headers: {
+                  'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                    "role": "webapp",
+                    "jwt": data
+              })
             });
+      
             const json = await response.json();
-            console.log(JSON.stringify(json))
-            console.log("--------------------------------")
-            const client_token = JSON.stringify(json["auth"]["client_token"])
-            console.log(JSON.stringify(json["auth"]["client_token"]))
+            const client_token = json["auth"]["client_token"]
+            console.log("Client token: " + client_token)
             console.log("--------------------------------")
             
             const response2 = await fetch(`${process.env.VAULT_ADDR}/v1/secret/data/webapp/config`, {
@@ -60,52 +53,59 @@ const requestListener = async function (req, res) {
                   'X-Vault-Token': client_token
               }
             });
+      
+            const json2 = await response2.json();
+            console.log("Received secrets: " + JSON.stringify(json2["data"]))
+      
+            pool_obj["password"] = json2["data"]["password"]
+            pool_obj["user"] = json2["data"]["username"]
+      
+            console.log("Pool: " + JSON.stringify(pool_obj))
+            
+            const pool = new Pool(pool_obj)
 
-          const json2 = await response2.json();
-          console.log("Received secrets: " + JSON.stringify(json2))
+            await consume(pool)
 
+            setTimeout(() => {pool.query('SELECT * FROM users', (error, results) => {
+              if (error) {
+                  throw error
+                }
+                const users = results.rows
+                console.log(users)
+                console.log("--------------------------------")
+  
+                let str = `<style> table, th, tr, td { border: 1px solid black; text-align: center;} 
+                td, th { width: 50%; }</style>
+                <table style="border-collapse: collapse;
+                width: 100%"><th>Email</th><th>Password</th>`
+                users.forEach(user => {
+                  str = str.concat(`
+                  <tr>
+                    <td>${user.email}</td>
+                    <td>${user.password}</td>
+                  </tr>
+                  `)
+                })
+                str = str.concat(`</table></div>`)
+  
+                res.end(str)
+                
+              })}, 5000)  
+              
+              res.write(`<div style="width: 700px"><p style="width: 100%; 
+              text-align: center; margin-bottom: 0">Registered users</p><br />`) 
           } else {
-              console.log(err);
+              throw err;
           }
         });
-        // console.log(process.env.JWT_PATH)
-
-        await consume()
-        setTimeout(() => {pool.query('SELECT * FROM users', (error, results) => {
-            if (error) {
-                throw error
-              }
-              const users = results.rows
-              console.log(users)
-              console.log("--------------------------------")
-
-              let str = `<style> table, th, tr, td { border: 1px solid black; text-align: center;} 
-              td, th { width: 50%; }</style>
-              <table style="border-collapse: collapse;
-              width: 100%"><th>Email</th><th>Password</th>`
-              users.forEach(user => {
-                str = str.concat(`
-                <tr>
-                  <td>${user.email}</td>
-                  <td>${user.password}</td>
-                </tr>
-                `)
-              })
-              str = str.concat(`</table></div>`)
-
-              res.end(str)
-              
-            })}, 6000)     
-        res.write(`<div style="width: 700px"><p style="width: 100%; 
-        text-align: center; margin-bottom: 0">Registered users</p><br />`)
-        return   
+        return
     } 
     res.writeHead(404);
     res.end(`Invalid url: '${req.url}'`)
 }
 
 
-const consume = async () => {
+const consume = async (pool) => {
   if (!if_connected) {
     await consumer.connect()
     await consumer.subscribe({ topic })
@@ -126,7 +126,7 @@ const consume = async () => {
 	})
 }
 
-const ensureDbCreated = async () => {
+const ensureDbCreated = async (pool) => {
     pool.query(`CREATE TABLE IF NOT EXISTS users (id serial primary key, 
       email varchar(255), password varchar(255);`, (error, results) => {
       if (error) {

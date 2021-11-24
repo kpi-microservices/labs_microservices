@@ -1,7 +1,6 @@
-const { clientId, brokers, topic } = require('./constants.js')
-
-const { Kafka } = require("kafkajs")
-const http = require('http');
+import {clientId, brokers, topic} from './constants.js'
+import {Kafka} from 'kafkajs';
+import http from 'http';
 
 const kafka = new Kafka({ clientId, brokers })
 const producer = kafka.producer()

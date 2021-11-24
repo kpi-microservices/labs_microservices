@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "type": "module",
   "dependencies": {
     "http": "^0.0.1-security",
     "kafkajs": "^1.15.0",
